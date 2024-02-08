@@ -38,6 +38,15 @@ const App = () => {
             }, 3000);
           })
           .catch(error => {
+            console.log(error.response.status)
+            if(error.response.status === 404) {
+              console.log("moro")
+              setErrorNotification(`Information of ${newName} has already been removed from the server`);
+              setTimeout(() => {
+                setErrorNotification(null);
+              }, 3000);
+              return;
+            }
             setErrorNotification(`Failed to update ${newName}'s number`);
             setTimeout(() => {
               setErrorNotification(null);
@@ -91,6 +100,9 @@ const App = () => {
           }, 3000);
         })
         .catch(error => {
+          if(error.response.status === 404) {
+            setErrorNotification(`Information of ${newName} has already been removed from the server`);
+          }
           setErrorNotification(`Failed to delete ${person.name} from phonebook`);
           setTimeout(() => {
             setErrorNotification(null);
