@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+var morgan = require('morgan')
 
 let notes = [
     {
@@ -28,6 +29,12 @@ const generateId = () => {
 }
 
 app.use(express.json())
+
+morgan.token('req-body', (req, res) => {
+  return JSON.stringify(req.body);
+});
+
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :req-body'));
 
 app.get('/api/persons', (request, response) => {
   response.json(notes)
