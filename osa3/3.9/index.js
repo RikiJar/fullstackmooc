@@ -4,21 +4,22 @@ var morgan = require('morgan')
 const cors = require('cors')
 
 app.use(cors())
+app.use(express.static('dist'))
 
 let notes = [
     {
       id: 1,
-      content: "Arto Hellas",
+      name: "Arto Hellas",
       number: "040-123456"
     },
     {
       id: 2,
-      content: "Ada Lovelace",
+      name: "Ada Lovelace",
       number: "39-44-5323523"
     },
     {
       id: 3,
-      content: "Mary Poppendick",
+      name: "Mary Poppendick",
       number: "39-23-6423122"
     }
   ]
@@ -37,7 +38,7 @@ morgan.token('req-body', (req, res) => {
   return JSON.stringify(req.body);
 });
 
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms :req-body'));
+app.use(morgan(':method :url :status :res[name-length] - :response-time ms :req-body'));
 
 app.get('/api/persons', (request, response) => {
   response.json(notes)
@@ -68,19 +69,19 @@ app.delete('/api/persons/:id', (request, response) => {
 
 app.post('/api/persons', (request, response) => {
   const body = request.body
-  if (!body.content || !body.number) {
+  if (!body.name || !body.number) {
     return response.status(400).json({
-      error: 'missing content'
+      error: 'missing name'
     })
   }
-  if(notes.find(info => info.content === body.content)) {
+  if(notes.find(info => info.name === body.name)) {
     return response.status(400).json({
       error: 'must have unique name'
     })
   }
   const person = {
     id: generateId(),
-    content: body.content,
+    name: body.name,
     number: body.number
   }
   notes = notes.concat(person)
