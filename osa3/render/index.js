@@ -42,13 +42,12 @@ app.delete('/api/persons/:id', (request, response) => {
 
 app.post('/api/persons', (request, response) => {
   const body = request.body
-  if (body.content === undefined) {
+  if (body.name === undefined) {
     return response.status(400).json({ error: 'content missing' })
   }
-
   const note = new Note({
-    content: body.content,
-    important: body.important || false,
+    name: body.name,
+    number: body.number,
   })
 
   note.save().then(savedNote => {
