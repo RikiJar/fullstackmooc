@@ -43,18 +43,31 @@ app.delete('/api/persons/:id', (request, response, next) => {
 })
 
 app.post('/api/persons', (request, response, next) => {
-  const body = request.body
+  const body = request.body;
   if (body.name === undefined) {
-    return response.status(400).json({ error: 'content missing' })
+    return response.status(400).json({ error: 'content missing' });
   }
+
   const note = new Note({
     name: body.name,
     number: body.number,
-  })
-  note.save().then(savedNote => {
-    response.json(savedNote)
-  }).catch(error => next(error))
-})
+  });
+
+  note.validate()
+    .then(() => {
+      return note.save();
+    })
+    .then(savedNote => {
+      response.json(savedNote);
+    })
+    .catch(error => {
+      console.log(error.message)
+      if (error.name === 'ValidationError') {
+        return response.status(400).json({ error: error.message });
+      }
+      next(error);
+    });
+});
 
 app.put('/api/persons/:id', (request, response, next) => {
   const body = request.body
@@ -62,7 +75,7 @@ app.put('/api/persons/:id', (request, response, next) => {
     name: body.name,
     number: body.number
   }
-  Note.findByIdAndUpdate(request.params.id, note, { new: true })
+  Note.findByIdAndUpdate(request.params.id, note, { new: true, runValidators: true, context: 'query' })
     .then(updatedNote => {
       response.json(updatedNote)
     })
