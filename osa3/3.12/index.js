@@ -1,28 +1,10 @@
 const express = require('express')
 const app = express()
-var morgan = require('morgan')
 const cors = require('cors')
-
+require('dotenv').config()
+const Note = require('./models/note')
 app.use(cors())
 app.use(express.static('dist'))
-
-let notes = [
-    {
-      id: 1,
-      name: "Arto Hellas",
-      number: "040-123456"
-    },
-    {
-      id: 2,
-      name: "Ada Lovelace",
-      number: "39-44-5323523"
-    },
-    {
-      id: 3,
-      name: "Mary Poppendick",
-      number: "39-23-6423122"
-    }
-  ]
 
 const generateId = () => {
   const id = Math.floor(Math.random() * 1932)
@@ -34,14 +16,10 @@ const generateId = () => {
 
 app.use(express.json())
 
-morgan.token('req-body', (req, res) => {
-  return JSON.stringify(req.body);
-});
-
-app.use(morgan(':method :url :status :res[name-length] - :response-time ms :req-body'));
-
 app.get('/api/persons', (request, response) => {
-  response.json(notes)
+  Note.find({}).then(notes => {
+    response.json(notes)
+  })
 })
 
 app.get('/info', (request, response) => {
@@ -51,14 +29,9 @@ app.get('/info', (request, response) => {
 })
 
 app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const personInfo = notes.find(info => info.id === id)
-  if (personInfo) {
-    response.json(personInfo)
-  } else {
-    console.log("not found")
-    response.status(404).end()
-  }
+  Note.findById(request.params.id).then(note => {
+    response.json(note)
+  })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -69,26 +42,21 @@ app.delete('/api/persons/:id', (request, response) => {
 
 app.post('/api/persons', (request, response) => {
   const body = request.body
-  if (!body.name || !body.number) {
-    return response.status(400).json({
-      error: 'missing name'
-    })
+  if (body.content === undefined) {
+    return response.status(400).json({ error: 'content missing' })
   }
-  if(notes.find(info => info.name === body.name)) {
-    return response.status(400).json({
-      error: 'must have unique name'
-    })
-  }
-  const person = {
-    id: generateId(),
-    name: body.name,
-    number: body.number
-  }
-  notes = notes.concat(person)
-  response.json(person)
+
+  const note = new Note({
+    content: body.content,
+    important: body.important || false,
+  })
+
+  note.save().then(savedNote => {
+    response.json(savedNote)
+  })
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+  console.log(`Server running on port http://localhost:${PORT}`)
 })
