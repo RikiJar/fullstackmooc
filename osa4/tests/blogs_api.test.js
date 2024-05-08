@@ -13,12 +13,14 @@ const initialBlogs = [
       author: 'wqzgfgw3243421',
       url: 'gasdfga132414',
       likes: 1,
+      user: '663adb1b2d74552030126686'
     },
     {
       title: '13241342',
       author: 'asdhhdsa',
       url: '4312asdf',
       likes: 55,
+      user: '663adb1b2d74552030126686'
     },
   ]
 
@@ -42,7 +44,6 @@ test('has to have id', async () => {
     .expect('Content-Type', /application\/json/)
 
   for (let id of response.body) {
-    console.log(id.id)
     assert(id.id)
   }
 });
@@ -54,9 +55,10 @@ test('successful post', async () => {
     url: 'test123321',
     likes: 0,
   }
-
+  // console.log(process.env.TEST_TOKEN)
   await api
     .post('/api/blogs')
+    .set('Authorization', process.env.TEST_TOKEN)
     .send(newBlog)
     .expect(201)
     .expect('Content-Type', /application\/json/)
@@ -75,6 +77,7 @@ test('check if likes is given null, gives 0', async () => {
 
   await api
     .post('/api/blogs')
+    .set('Authorization', process.env.TEST_TOKEN)
     .send(newBlog)
     .expect(201)
     .expect('Content-Type', /application\/json/)
@@ -90,9 +93,9 @@ test('require title ', async () => {
     author: 'tefsafas',
     url: 'test123321',
   }
-  console.log("morooroo")
   await api
     .post('/api/blogs')
+    .set('Authorization', process.env.TEST_TOKEN)
     .send(newBlog)
     .expect(400)
 
@@ -109,6 +112,7 @@ test('require url ', async () => {
 
   await api
     .post('/api/blogs')
+    .set('Authorization', process.env.TEST_TOKEN)
     .send(newBlog)
     .expect(400)
 
@@ -120,9 +124,10 @@ test('require url ', async () => {
 test('deleting works ', async () => {
   const blogsStart = await Blog.find({})
   const blogDelete = blogsStart[0]
-  
+
   await api
     .delete(`/api/blogs/${blogDelete.id}`)
+    .set('Authorization', process.env.TEST_TOKEN)
     .expect(204)
 
   const blogsEnd = await Blog.find({})
@@ -138,11 +143,27 @@ test('updating likes work ', async () => {
   await api
     .put(`/api/blogs/${blogUpdate.id}`)
     .send({ likes: 1321 })
+    .set('Authorization', process.env.TEST_TOKEN)
     .expect(200)
 
   const blogsEnd = await Blog.find({})
   // console.log(blogsEnd[0].likes)
   assert.strictEqual(blogsEnd[0].likes, 1321)
+});
+
+test('check if posting a blog has token', async () => {
+  const newBlog = {
+    title: 'test123321',
+    author: 'tefsafas',
+    url: 'test123321',
+    likes: 0,
+    user: '663adb1b2d74552030126686'
+  }
+  await api
+    .post('/api/blogs')
+    .set('Authorization', "")
+    .send(newBlog)
+    .expect(401)
 });
 
 after(async () => {
